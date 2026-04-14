@@ -1,0 +1,31 @@
+{
+  "name": "raindrop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CLI for Raindrop.io",
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "bin": {
+    "raindrop": "./dist/index.mjs"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf dist",
+    "example": "node ./dist/index.mjs example",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.3",
+    "commander": "14.0.3",
+    "prettier": "3.8.2",
+    "tsdown": "0.21.8",
+    "typescript": "6.0.2",
+    "vitest": "4.1.4"
+  }
+}
