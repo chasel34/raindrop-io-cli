@@ -293,6 +293,12 @@ The checklist below compares the current CLI against the Raindrop API surface an
 
 The repository includes a companion skill at [skills/raindrop-cli-companion/SKILL.md](/Users/cola/Documents/code/raindrop-io-cli/skills/raindrop-cli-companion/SKILL.md).
 
+If you want to install this skill into your local skills directory, run:
+
+```bash
+npx skills add chasel34/raindrop-io-cli --skill raindrop-cli-companion
+```
+
 It is useful when an agent or automation layer needs to:
 
 - Prefer `--json`

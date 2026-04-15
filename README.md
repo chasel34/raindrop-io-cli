@@ -293,6 +293,12 @@ raindrop --json request get /rest/v1/user
 
 仓库内包含一个配套技能：[skills/raindrop-cli-companion/SKILL.md](/Users/cola/Documents/code/raindrop-io-cli/skills/raindrop-cli-companion/SKILL.md)。
 
+如果你想把这个技能安装到本地技能目录中，可以使用：
+
+```bash
+npx skills add chasel34/raindrop-io-cli --skill raindrop-cli-companion
+```
+
 这个技能适合让代理或自动化工具稳定地：
 
 - 用 `--json` 运行命令
