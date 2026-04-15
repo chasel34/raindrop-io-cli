@@ -221,6 +221,74 @@ Notes:
 - Use a relative API path such as `/rest/v1/user`
 - Absolute URLs are rejected
 
+## TODO
+
+The checklist below compares the current CLI against the Raindrop API surface and groups work by functional area. Checked items are already implemented. Unchecked items are still open.
+
+### User
+
+- [x] Read the authenticated user
+- [x] Validate auth and config with a real API probe
+- [ ] Update the authenticated user
+
+### Collections
+
+- [x] List collections
+- [x] Render the collection tree
+- [x] Resolve a collection by name or path
+- [ ] Create a collection
+- [ ] Update a collection
+- [ ] Delete a collection
+- [ ] Delete multiple collections
+- [ ] Merge collections
+- [ ] Upload a collection cover
+- [ ] Search collection covers or icons
+
+### Tags
+
+- [x] List tags globally
+- [x] List tags for a collection
+- [ ] Rename or merge tags
+
+### Bookmarks
+
+- [x] List bookmarks in a collection
+- [x] Search bookmarks
+- [x] Get a single bookmark
+- [x] Create a bookmark
+- [x] Suggest tags and collections for a URL
+- [ ] Update a bookmark
+- [ ] Delete a bookmark
+- [ ] Bulk update bookmarks
+- [ ] Bulk delete bookmarks
+- [ ] Export bookmarks
+- [ ] Read permanent copy metadata or open cached content
+- [ ] Upload files as bookmarks
+- [ ] Manage favorites, reminders, or other bookmark fields beyond create-time input
+
+### Highlights
+
+- [ ] List highlights for a collection
+- [ ] Add highlights to a bookmark
+- [ ] Remove highlights from a bookmark
+
+### Sharing & Collaboration
+
+- [ ] Read sharing metadata for collections
+- [ ] Invite collaborators or update collaborator access
+- [ ] Remove collaborators
+- [ ] Leave or unshare a shared collection
+
+### Import & Parsing
+
+- [ ] Import bookmarks from a file
+- [ ] Parse a URL through the import endpoint
+
+### Escape Hatch
+
+- [x] Run raw read-only GET requests against uncovered endpoints
+- [ ] Support raw write requests for advanced workflows
+
 ## Agents and Automation
 
 The repository includes a companion skill at [skills/raindrop-cli-companion/SKILL.md](/Users/cola/Documents/code/raindrop-io-cli/skills/raindrop-cli-companion/SKILL.md).
