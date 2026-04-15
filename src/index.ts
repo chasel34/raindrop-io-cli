@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-import { createCli } from "./cli.js";
+import { runCli } from "./cli.js";
 
-const program = createCli();
+const exitCode = await runCli(process.argv.slice(2));
 
-await program.parseAsync(process.argv);
+if (exitCode !== 0) {
+  process.exitCode = exitCode;
+}
