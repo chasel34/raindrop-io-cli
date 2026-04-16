@@ -28,6 +28,38 @@ pnpm format:check
 
 Use `pnpm format` only when you want to rewrite formatting.
 
+## E2E Testing
+
+Run installed-CLI E2E checks as black-box tests from `/tmp`. Do not inspect source code while performing this flow unless the user explicitly asks for debugging or implementation work.
+
+Use the companion skill at `skills/raindrop-cli-companion/SKILL.md` as the execution guide for installed-command behavior. Prefer `--json` for every command that is part of the automated check.
+
+Authentication:
+
+- Use a provided token through `RAINDROP_TOKEN` or `--token`; do not commit or persist real tokens in the repository.
+- To test config-file auth, create a temporary home under `/tmp`, write `/tmp/<name>/.raindrop/config.toml`, run commands with `HOME=/tmp/<name>`, then delete the temporary directory.
+- Verify auth precedence with `--token` overriding `RAINDROP_TOKEN`, then `RAINDROP_TOKEN`, then `~/.raindrop/config.toml`.
+
+Test modes:
+
+- Full E2E: discover the complete installed command surface by recursively running `-h` or `--help` from the root command through every subcommand. Cover every discovered command with at least one success or expected-error case, including read paths, write paths, and raw request paths when present.
+- Incremental E2E: when the user specifies a command, feature, bug fix, or changed area, limit the E2E run to that scope plus any directly dependent setup, verification, and regression checks. Still use `-h` or `--help` inside the requested scope before assuming flags.
+- If the user does not specify a scope, default to Full E2E.
+
+Help and error coverage:
+
+- In Full E2E, record the discovered command tree from help output before executing behavior checks.
+- In Incremental E2E, check help output for every command in the requested scope.
+- Confirm required options are labelled as required in help output.
+- Confirm stable JSON errors for missing auth, invalid integer IDs, invalid bookmark URLs, absolute raw request URLs, and raw request paths that do not start with `/`.
+- For non-Pro accounts, `bookmarks suggest` may legitimately return a structured `feature_requires_pro` error.
+
+Reporting:
+
+- If the user asks to write findings, write only problems, regressions, residual risks, and improvement opportunities.
+- Do not include successful checks in issue notes unless the user explicitly requests a full test log.
+- Prefer writing issue notes under `issue/` using a focused Markdown file.
+
 ## Architecture
 
 The codebase is intentionally small and split by responsibility.
@@ -84,6 +116,7 @@ When adding a new command:
 3. Prefer the existing JSON envelope from `src/output.ts`.
 4. Reuse `CliError` for user-facing failures.
 5. Add focused tests for success and failure cases.
+6. After the feature is complete, check whether `skills/raindrop-cli-companion/SKILL.md` or related skill metadata needs updates for the new command, options, output shape, or troubleshooting guidance.
 
 When adding a new API wrapper:
 
