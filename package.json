@@ -1,25 +1,55 @@
 {
-  "name": "raindrop",
+  "name": "@chasel34/raindrop-cli",
   "version": "0.1.0",
-  "private": true,
   "description": "CLI for Raindrop.io",
+  "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.18.3",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chasel34/raindrop-io-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chasel34/raindrop-io-cli/issues"
+  },
+  "homepage": "https://github.com/chasel34/raindrop-io-cli#readme",
+  "keywords": [
+    "raindrop",
+    "raindrop.io",
+    "cli",
+    "bookmarks",
+    "automation"
+  ],
   "bin": {
     "raindrop": "./dist/index.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "engines": {
     "node": ">=22.18.0"
   },
   "scripts": {
     "build": "tsdown",
+    "changeset": "changeset",
     "clean": "rm -rf dist",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "release": "pnpm build && changeset publish",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "version": "changeset version"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.30.0",
     "@types/node": "22.18.3",
     "commander": "14.0.3",
     "prettier": "3.8.2",
