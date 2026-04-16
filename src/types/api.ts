@@ -3,6 +3,7 @@ export type ApiCollection = {
   parent?: {
     $id: number;
   };
+  public?: boolean;
   title: string;
 };
 
@@ -20,8 +21,10 @@ export type ApiBookmark = {
   cover?: string;
   created?: string;
   excerpt?: string;
+  important?: boolean;
   lastUpdate?: string;
   link?: string;
+  note?: string;
   tags?: string[];
   title?: string;
   type?: string;

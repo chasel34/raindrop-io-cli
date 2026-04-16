@@ -62,6 +62,100 @@ export async function listCollections(
   return [...(roots.items ?? []), ...(children.items ?? [])];
 }
 
+export async function createCollection(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  body: Record<string, unknown>,
+  runtime: ClientRuntime,
+): Promise<ApiCollection> {
+  const payload = await requestJson<{ item?: ApiCollection }>({
+    body,
+    command: "collections create",
+    config,
+    method: "POST",
+    path: "/collection",
+    runtime,
+    token,
+  });
+
+  if (!payload.item) {
+    throw new CliError({
+      code: "api_error",
+      command: "collections create",
+      message: "Unexpected Raindrop API response",
+    });
+  }
+
+  return payload.item;
+}
+
+export async function updateCollection(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  id: number,
+  body: Record<string, unknown>,
+  runtime: ClientRuntime,
+): Promise<ApiCollection> {
+  const payload = await requestJson<{ item?: ApiCollection }>({
+    body,
+    command: "collections update",
+    config,
+    method: "PUT",
+    path: `/collection/${id}`,
+    runtime,
+    token,
+  });
+
+  if (!payload.item) {
+    throw new CliError({
+      code: "api_error",
+      command: "collections update",
+      message: "Unexpected Raindrop API response",
+    });
+  }
+
+  return payload.item;
+}
+
+export async function deleteCollection(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  id: number,
+  runtime: ClientRuntime,
+): Promise<void> {
+  await requestJson<Record<string, unknown>>({
+    command: "collections delete",
+    config,
+    method: "DELETE",
+    path: `/collection/${id}`,
+    runtime,
+    token,
+  });
+}
+
+export async function deleteCollections(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  ids: number[],
+  runtime: ClientRuntime,
+): Promise<{ modified: number | null }> {
+  const payload = await requestJson<{ modified?: number }>({
+    body: {
+      ids,
+    },
+    command: "collections delete-many",
+    config,
+    method: "DELETE",
+    path: "/collections",
+    runtime,
+    token,
+  });
+
+  return {
+    modified: typeof payload.modified === "number" ? payload.modified : null,
+  };
+}
+
 export async function listTags(
   config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
   token: string,
@@ -230,6 +324,98 @@ export async function createBookmark(
   return payload.item;
 }
 
+export async function updateBookmark(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  id: number,
+  body: Record<string, unknown>,
+  runtime: ClientRuntime,
+): Promise<ApiBookmark> {
+  const payload = await requestJson<{ item?: ApiBookmark }>({
+    body,
+    command: "bookmarks update",
+    config,
+    method: "PUT",
+    path: `/raindrop/${id}`,
+    runtime,
+    token,
+  });
+
+  if (!payload.item) {
+    throw new CliError({
+      code: "api_error",
+      command: "bookmarks update",
+      message: "Unexpected Raindrop API response",
+    });
+  }
+
+  return payload.item;
+}
+
+export async function deleteBookmark(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  id: number,
+  runtime: ClientRuntime,
+): Promise<void> {
+  await requestJson<Record<string, unknown>>({
+    command: "bookmarks delete",
+    config,
+    method: "DELETE",
+    path: `/raindrop/${id}`,
+    runtime,
+    token,
+  });
+}
+
+export async function updateBookmarks(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  collectionId: number,
+  body: Record<string, unknown>,
+  query: Record<string, string>,
+  runtime: ClientRuntime,
+): Promise<{ modified: number | null }> {
+  const payload = await requestJson<{ modified?: number }>({
+    body,
+    command: "bookmarks update-many",
+    config,
+    method: "PUT",
+    path: `/raindrops/${collectionId}`,
+    query,
+    runtime,
+    token,
+  });
+
+  return {
+    modified: typeof payload.modified === "number" ? payload.modified : null,
+  };
+}
+
+export async function deleteBookmarks(
+  config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
+  token: string,
+  collectionId: number,
+  body: Record<string, unknown> | undefined,
+  query: Record<string, string>,
+  runtime: ClientRuntime,
+): Promise<{ modified: number | null }> {
+  const payload = await requestJson<{ modified?: number }>({
+    body,
+    command: "bookmarks delete-many",
+    config,
+    method: "DELETE",
+    path: `/raindrops/${collectionId}`,
+    query,
+    runtime,
+    token,
+  });
+
+  return {
+    modified: typeof payload.modified === "number" ? payload.modified : null,
+  };
+}
+
 export async function rawGet(
   config: Pick<CliConfig, "baseUrl" | "timeoutMs">,
   token: string,
@@ -249,7 +435,7 @@ type RequestJsonOptions = {
   body?: Record<string, unknown>;
   command: string;
   config: Pick<CliConfig, "baseUrl" | "timeoutMs">;
-  method?: "GET" | "POST";
+  method?: "DELETE" | "GET" | "POST" | "PUT";
   path: string;
   query?: Record<string, string>;
   runtime: ClientRuntime;

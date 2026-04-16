@@ -3,9 +3,13 @@ import { Command } from "commander";
 import { resolveAuth } from "../auth.js";
 import {
   createBookmark,
+  deleteBookmark,
+  deleteBookmarks,
   getBookmark,
   listBookmarks,
   suggestBookmark,
+  updateBookmark,
+  updateBookmarks,
 } from "../client.js";
 import { type GlobalOptions, type CliRuntime } from "../cli.js";
 import { CliError } from "../errors.js";
@@ -243,6 +247,221 @@ export function createBookmarksCommand(
       ),
   );
 
+  bookmarksCommand.addCommand(
+    withExitOverride(new Command("update"))
+      .description("Update a bookmark")
+      .argument(
+        "<id>",
+        "Bookmark ID",
+        createIntegerParser({
+          label: "Bookmark ID",
+          min: 1,
+        }),
+      )
+      .option("--url <url>", "Bookmark URL")
+      .option("--title <title>", "Bookmark title")
+      .option(
+        "--collection <id>",
+        "Collection ID",
+        createIntegerParser({
+          label: "Collection ID",
+        }),
+      )
+      .option("--tags <tags>", "Comma-separated tags")
+      .option("--clear-tags", "Remove all tags")
+      .option("--important", "Mark bookmark as important")
+      .option("--not-important", "Unmark bookmark as important")
+      .option("--excerpt <text>", "Bookmark excerpt")
+      .option("--note <text>", "Bookmark note")
+      .option("--cover <url>", "Cover image URL")
+      .option("--parse", "Ask Raindrop to parse the page on update")
+      .action(async (id: number, options: BookmarkUpdateOptions) => {
+        const globalOptions = program.opts<GlobalOptions>();
+        const auth = await resolveAuth(
+          globalOptions,
+          "bookmarks update",
+          runtime,
+        );
+        const token = requireToken(auth.token, "bookmarks update");
+        const bookmark = normalizeBookmark(
+          await updateBookmark(
+            auth.config,
+            token,
+            id,
+            buildUpdateBookmarkBody(options, "bookmarks update"),
+            runtime,
+          ),
+        );
+
+        if (globalOptions.json) {
+          printJson(runtime.stdout, {
+            ok: true,
+            data: {
+              bookmark,
+            },
+            meta: {
+              command: "bookmarks update",
+            },
+          });
+          return;
+        }
+
+        printLine(
+          runtime.stdout,
+          bookmark.title || bookmark.url || String(bookmark.id),
+        );
+      }),
+  );
+
+  bookmarksCommand.addCommand(
+    withExitOverride(new Command("delete"))
+      .description("Delete a bookmark")
+      .argument(
+        "<id>",
+        "Bookmark ID",
+        createIntegerParser({
+          label: "Bookmark ID",
+          min: 1,
+        }),
+      )
+      .action(async (id: number) => {
+        const globalOptions = program.opts<GlobalOptions>();
+        const auth = await resolveAuth(
+          globalOptions,
+          "bookmarks delete",
+          runtime,
+        );
+        const token = requireToken(auth.token, "bookmarks delete");
+
+        await deleteBookmark(auth.config, token, id, runtime);
+
+        if (globalOptions.json) {
+          printJson(runtime.stdout, {
+            ok: true,
+            data: {
+              deleted: {
+                id,
+              },
+            },
+            meta: {
+              command: "bookmarks delete",
+            },
+          });
+          return;
+        }
+
+        printLine(runtime.stdout, `Deleted bookmark ${id}`);
+      }),
+  );
+
+  bookmarksCommand.addCommand(
+    withExitOverride(new Command("update-many"))
+      .description("Update multiple bookmarks")
+      .requiredOption(
+        "--collection <id>",
+        "Source collection ID",
+        createIntegerParser({
+          label: "Collection ID",
+        }),
+      )
+      .option("--ids <ids>", "Comma-separated bookmark IDs")
+      .option("--search <query>", "Raindrop search query")
+      .option("--nested", "Include nested collections")
+      .option("--tags <tags>", "Comma-separated tags")
+      .option("--clear-tags", "Remove all tags")
+      .option(
+        "--move-to <id>",
+        "Destination collection ID",
+        createIntegerParser({
+          label: "Destination collection ID",
+        }),
+      )
+      .option("--important", "Mark bookmarks as important")
+      .option("--not-important", "Unmark bookmarks as important")
+      .option("--cover <url>", "Cover image URL")
+      .action(async (options: BookmarkBatchUpdateOptions) => {
+        const globalOptions = program.opts<GlobalOptions>();
+        const auth = await resolveAuth(
+          globalOptions,
+          "bookmarks update-many",
+          runtime,
+        );
+        const token = requireToken(auth.token, "bookmarks update-many");
+        const batch = buildUpdateBookmarksRequest(options);
+        const result = await updateBookmarks(
+          auth.config,
+          token,
+          validateBatchCollection(options.collection, "bookmarks update-many"),
+          batch.body,
+          batch.query,
+          runtime,
+        );
+
+        if (globalOptions.json) {
+          printJson(runtime.stdout, {
+            ok: true,
+            data: {
+              modified: result.modified,
+            },
+            meta: {
+              command: "bookmarks update-many",
+            },
+          });
+          return;
+        }
+
+        printLine(runtime.stdout, `Modified ${result.modified ?? 0} bookmarks`);
+      }),
+  );
+
+  bookmarksCommand.addCommand(
+    withExitOverride(new Command("delete-many"))
+      .description("Delete multiple bookmarks")
+      .requiredOption(
+        "--collection <id>",
+        "Source collection ID",
+        createIntegerParser({
+          label: "Collection ID",
+        }),
+      )
+      .option("--ids <ids>", "Comma-separated bookmark IDs")
+      .option("--search <query>", "Raindrop search query")
+      .option("--nested", "Include nested collections")
+      .action(async (options: BookmarkBatchDeleteOptions) => {
+        const globalOptions = program.opts<GlobalOptions>();
+        const auth = await resolveAuth(
+          globalOptions,
+          "bookmarks delete-many",
+          runtime,
+        );
+        const token = requireToken(auth.token, "bookmarks delete-many");
+        const batch = buildDeleteBookmarksRequest(options);
+        const result = await deleteBookmarks(
+          auth.config,
+          token,
+          validateBatchCollection(options.collection, "bookmarks delete-many"),
+          batch.body,
+          batch.query,
+          runtime,
+        );
+
+        if (globalOptions.json) {
+          printJson(runtime.stdout, {
+            ok: true,
+            data: {
+              modified: result.modified,
+            },
+            meta: {
+              command: "bookmarks delete-many",
+            },
+          });
+          return;
+        }
+
+        printLine(runtime.stdout, `Modified ${result.modified ?? 0} bookmarks`);
+      }),
+  );
+
   return bookmarksCommand;
 }
 
@@ -332,6 +551,247 @@ function buildCreateBookmarkBody(options: {
   return body;
 }
 
+type BookmarkUpdateOptions = {
+  clearTags?: boolean;
+  collection?: number;
+  cover?: string;
+  excerpt?: string;
+  important?: boolean;
+  note?: string;
+  notImportant?: boolean;
+  parse?: boolean;
+  tags?: string;
+  title?: string;
+  url?: string;
+};
+
+type BookmarkBatchUpdateOptions = {
+  clearTags?: boolean;
+  collection: number;
+  cover?: string;
+  ids?: string;
+  important?: boolean;
+  moveTo?: number;
+  nested?: boolean;
+  notImportant?: boolean;
+  search?: string;
+  tags?: string;
+};
+
+type BookmarkBatchDeleteOptions = {
+  collection: number;
+  ids?: string;
+  nested?: boolean;
+  search?: string;
+};
+
+function buildUpdateBookmarkBody(
+  options: BookmarkUpdateOptions,
+  command: string,
+): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+
+  if (options.url) {
+    body.link = validateUrl(options.url, command);
+  }
+
+  if (options.title) {
+    body.title = options.title;
+  }
+
+  if (options.collection !== undefined) {
+    body.collection = {
+      $id: options.collection,
+    };
+  }
+
+  if (options.tags && options.clearTags) {
+    throw new CliError({
+      code: "bookmark_options_conflict",
+      command,
+      message: "Use either --tags or --clear-tags, not both",
+    });
+  }
+
+  if (options.clearTags) {
+    body.tags = [];
+  } else {
+    const tags = parseTags(options.tags);
+
+    if (tags.length > 0) {
+      body.tags = tags;
+    }
+  }
+
+  if (options.important && options.notImportant) {
+    throw new CliError({
+      code: "bookmark_options_conflict",
+      command,
+      message: "Use either --important or --not-important, not both",
+    });
+  }
+
+  if (options.important) {
+    body.important = true;
+  }
+
+  if (options.notImportant) {
+    body.important = false;
+  }
+
+  if (options.excerpt) {
+    body.excerpt = options.excerpt;
+  }
+
+  if (options.note) {
+    body.note = options.note;
+  }
+
+  if (options.cover) {
+    body.cover = validateUrl(options.cover, command);
+  }
+
+  if (options.parse) {
+    body.pleaseParse = {};
+  }
+
+  if (Object.keys(body).length === 0) {
+    throw new CliError({
+      code: "bookmark_update_empty",
+      command,
+      message: "Provide at least one field to update",
+    });
+  }
+
+  return body;
+}
+
+function buildUpdateBookmarksRequest(options: BookmarkBatchUpdateOptions): {
+  body: Record<string, unknown>;
+  query: Record<string, string>;
+} {
+  const { body, query } = buildBatchSelector(options, "bookmarks update-many");
+
+  if (options.tags && options.clearTags) {
+    throw new CliError({
+      code: "bookmark_options_conflict",
+      command: "bookmarks update-many",
+      message: "Use either --tags or --clear-tags, not both",
+    });
+  }
+
+  if (options.clearTags) {
+    body.tags = [];
+  } else {
+    const tags = parseTags(options.tags);
+
+    if (tags.length > 0) {
+      body.tags = tags;
+    }
+  }
+
+  if (options.moveTo !== undefined) {
+    body.collection = {
+      $id: options.moveTo,
+    };
+  }
+
+  if (options.important && options.notImportant) {
+    throw new CliError({
+      code: "bookmark_options_conflict",
+      command: "bookmarks update-many",
+      message: "Use either --important or --not-important, not both",
+    });
+  }
+
+  if (options.important) {
+    body.important = true;
+  }
+
+  if (options.notImportant) {
+    body.important = false;
+  }
+
+  if (options.cover) {
+    body.cover = validateUrl(options.cover, "bookmarks update-many");
+  }
+
+  if (!hasUpdateField(body)) {
+    throw new CliError({
+      code: "bookmark_update_empty",
+      command: "bookmarks update-many",
+      message: "Provide at least one field to update",
+    });
+  }
+
+  return {
+    body,
+    query,
+  };
+}
+
+function buildDeleteBookmarksRequest(options: BookmarkBatchDeleteOptions): {
+  body: Record<string, unknown> | undefined;
+  query: Record<string, string>;
+} {
+  const { body, query } = buildBatchSelector(options, "bookmarks delete-many");
+
+  return {
+    body: Object.keys(body).length > 0 ? body : undefined,
+    query,
+  };
+}
+
+function buildBatchSelector(
+  options: { ids?: string; nested?: boolean; search?: string },
+  command: string,
+): {
+  body: Record<string, unknown>;
+  query: Record<string, string>;
+} {
+  if (options.ids && options.search) {
+    throw new CliError({
+      code: "bookmark_selector_conflict",
+      command,
+      message: "Use either --ids or --search, not both",
+    });
+  }
+
+  if (!options.ids && !options.search) {
+    throw new CliError({
+      code: "bookmark_selector_missing",
+      command,
+      message: "Provide either --ids or --search",
+    });
+  }
+
+  const body: Record<string, unknown> = {};
+  const query: Record<string, string> = {};
+
+  if (options.ids) {
+    body.ids = parseIdList(options.ids, command);
+  }
+
+  if (options.search) {
+    query.search = options.search;
+  }
+
+  if (options.nested) {
+    query.nested = "true";
+  }
+
+  return {
+    body,
+    query,
+  };
+}
+
+function hasUpdateField(body: Record<string, unknown>): boolean {
+  return Object.keys(body).some(
+    (key) => key !== "ids" && key !== "search" && key !== "nested",
+  );
+}
+
 function normalizeBookmark(bookmark: ApiBookmark): {
   collectionId: number | null;
   id: number;
@@ -403,6 +863,39 @@ function requireToken(token: string | null, command: string): string {
     message: "Raindrop token not found",
     status: 401,
   });
+}
+
+function parseIdList(input: string, command: string): number[] {
+  const ids = input
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value !== "")
+    .map((value) => Number(value));
+
+  if (ids.length === 0 || ids.some((id) => !Number.isInteger(id) || id < 1)) {
+    throw new CliError({
+      code: "ids_invalid",
+      command,
+      message: "IDs must be a comma-separated list of positive integers",
+    });
+  }
+
+  return ids;
+}
+
+function validateBatchCollection(
+  collectionId: number,
+  command: string,
+): number {
+  if (collectionId === 0) {
+    throw new CliError({
+      code: "bookmark_collection_unsupported",
+      command,
+      message: "Batch bookmark update and delete do not support collection 0",
+    });
+  }
+
+  return collectionId;
 }
 
 function validateUrl(value: string, command: string): string {

@@ -451,6 +451,314 @@ describe("bookmarks commands", () => {
     expect(stderr.contents()).toBe("");
   });
 
+  it("updates a bookmark", async () => {
+    const stdout = createBufferedWriter();
+    const stderr = createBufferedWriter();
+
+    const exitCode = await runCli(
+      [
+        "--json",
+        "bookmarks",
+        "update",
+        "77",
+        "--url",
+        "https://example.com/updated",
+        "--title",
+        "Updated",
+        "--collection",
+        "10",
+        "--clear-tags",
+        "--important",
+      ],
+      {
+        env: {
+          RAINDROP_TOKEN: "rdt_bookmarks_token",
+        },
+        fetch: async (input, init) => {
+          expect(input).toBe("https://api.raindrop.io/rest/v1/raindrop/77");
+          expect(init).toMatchObject({
+            headers: {
+              Authorization: "Bearer rdt_bookmarks_token",
+              "Content-Type": "application/json",
+            },
+            method: "PUT",
+          });
+          expect(JSON.parse(String(init?.body))).toEqual({
+            collection: {
+              $id: 10,
+            },
+            important: true,
+            link: "https://example.com/updated",
+            tags: [],
+            title: "Updated",
+          });
+
+          return createJsonResponse(200, {
+            result: true,
+            item: {
+              _id: 77,
+              collection: {
+                $id: 10,
+              },
+              link: "https://example.com/updated",
+              tags: [],
+              title: "Updated",
+            },
+          });
+        },
+        stderr: stderr.writer,
+        stdout: stdout.writer,
+      },
+    );
+
+    expect(exitCode).toBe(0);
+    expect(stdout.contents()).toBe(
+      `${JSON.stringify(
+        {
+          ok: true,
+          data: {
+            bookmark: {
+              collectionId: 10,
+              id: 77,
+              tags: [],
+              title: "Updated",
+              url: "https://example.com/updated",
+            },
+          },
+          meta: {
+            command: "bookmarks update",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    expect(stderr.contents()).toBe("");
+  });
+
+  it("deletes a bookmark", async () => {
+    const stdout = createBufferedWriter();
+    const stderr = createBufferedWriter();
+
+    const exitCode = await runCli(["--json", "bookmarks", "delete", "77"], {
+      env: {
+        RAINDROP_TOKEN: "rdt_bookmarks_token",
+      },
+      fetch: async (input, init) => {
+        expect(input).toBe("https://api.raindrop.io/rest/v1/raindrop/77");
+        expect(init).toMatchObject({
+          headers: {
+            Authorization: "Bearer rdt_bookmarks_token",
+          },
+          method: "DELETE",
+        });
+
+        return createJsonResponse(200, {
+          result: true,
+        });
+      },
+      stderr: stderr.writer,
+      stdout: stdout.writer,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.contents()).toBe(
+      `${JSON.stringify(
+        {
+          ok: true,
+          data: {
+            deleted: {
+              id: 77,
+            },
+          },
+          meta: {
+            command: "bookmarks delete",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    expect(stderr.contents()).toBe("");
+  });
+
+  it("updates multiple bookmarks by ids", async () => {
+    const stdout = createBufferedWriter();
+    const stderr = createBufferedWriter();
+
+    const exitCode = await runCli(
+      [
+        "--json",
+        "bookmarks",
+        "update-many",
+        "--collection",
+        "10",
+        "--ids",
+        "77,78",
+        "--tags",
+        "a,b",
+        "--move-to",
+        "11",
+      ],
+      {
+        env: {
+          RAINDROP_TOKEN: "rdt_bookmarks_token",
+        },
+        fetch: async (input, init) => {
+          expect(input).toBe("https://api.raindrop.io/rest/v1/raindrops/10");
+          expect(init).toMatchObject({
+            headers: {
+              Authorization: "Bearer rdt_bookmarks_token",
+              "Content-Type": "application/json",
+            },
+            method: "PUT",
+          });
+          expect(JSON.parse(String(init?.body))).toEqual({
+            collection: {
+              $id: 11,
+            },
+            ids: [77, 78],
+            tags: ["a", "b"],
+          });
+
+          return createJsonResponse(200, {
+            result: true,
+            modified: 2,
+          });
+        },
+        stderr: stderr.writer,
+        stdout: stdout.writer,
+      },
+    );
+
+    expect(exitCode).toBe(0);
+    expect(stdout.contents()).toBe(
+      `${JSON.stringify(
+        {
+          ok: true,
+          data: {
+            modified: 2,
+          },
+          meta: {
+            command: "bookmarks update-many",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    expect(stderr.contents()).toBe("");
+  });
+
+  it("deletes multiple bookmarks by search query", async () => {
+    const stdout = createBufferedWriter();
+    const stderr = createBufferedWriter();
+
+    const exitCode = await runCli(
+      [
+        "--json",
+        "bookmarks",
+        "delete-many",
+        "--collection",
+        "10",
+        "--search",
+        "#stale",
+        "--nested",
+      ],
+      {
+        env: {
+          RAINDROP_TOKEN: "rdt_bookmarks_token",
+        },
+        fetch: async (input, init) => {
+          expect(input).toBe(
+            "https://api.raindrop.io/rest/v1/raindrops/10?search=%23stale&nested=true",
+          );
+          expect(init).toMatchObject({
+            headers: {
+              Authorization: "Bearer rdt_bookmarks_token",
+            },
+            method: "DELETE",
+          });
+          expect(init?.body).toBeUndefined();
+
+          return createJsonResponse(200, {
+            result: true,
+            modified: 4,
+          });
+        },
+        stderr: stderr.writer,
+        stdout: stdout.writer,
+      },
+    );
+
+    expect(exitCode).toBe(0);
+    expect(stdout.contents()).toBe(
+      `${JSON.stringify(
+        {
+          ok: true,
+          data: {
+            modified: 4,
+          },
+          meta: {
+            command: "bookmarks delete-many",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    expect(stderr.contents()).toBe("");
+  });
+
+  it("rejects collection 0 for batch bookmark updates", async () => {
+    const stdout = createBufferedWriter();
+    const stderr = createBufferedWriter();
+
+    const exitCode = await runCli(
+      [
+        "--json",
+        "bookmarks",
+        "update-many",
+        "--collection",
+        "0",
+        "--ids",
+        "77",
+        "--tags",
+        "a",
+      ],
+      {
+        env: {
+          RAINDROP_TOKEN: "rdt_bookmarks_token",
+        },
+        fetch: async () => {
+          throw new Error("fetch should not be called");
+        },
+        stderr: stderr.writer,
+        stdout: stdout.writer,
+      },
+    );
+
+    expect(exitCode).toBe(1);
+    expect(stdout.contents()).toBe(
+      `${JSON.stringify(
+        {
+          ok: false,
+          error: {
+            code: "bookmark_collection_unsupported",
+            message:
+              "Batch bookmark update and delete do not support collection 0",
+          },
+          meta: {
+            command: "bookmarks update-many",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    expect(stderr.contents()).toBe("");
+  });
+
   it("rejects invalid bookmark URLs before calling the API", async () => {
     const stdout = createBufferedWriter();
     const stderr = createBufferedWriter();
