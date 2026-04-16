@@ -27,7 +27,13 @@ base_url = "https://api.raindrop.io/rest/v1"
 timeout_ms = 10000
 ```
 
-If `raindrop` is not on `PATH`, install or update the published package using the package manager and installation flow chosen for distribution. Do not assume source files, a local clone, or `pnpm link --global` are available.
+If `raindrop` is not on `PATH`, install or update the published npm package:
+
+```bash
+npm install -g @chasel34/raindrop-cli
+```
+
+The package name is `@chasel34/raindrop-cli`; the installed command is `raindrop`. Do not assume source files, a local clone, or `pnpm link --global` are available.
 
 ## Command Map
 

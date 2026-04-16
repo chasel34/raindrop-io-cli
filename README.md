@@ -46,20 +46,24 @@ raindrop request get </rest/v1/...>
 
 ## 安装
 
-当前项目更适合从源码直接运行：
+推荐通过 npm 全局安装发布包：
+
+```bash
+npm install -g @chasel34/raindrop-cli
+raindrop --help
+```
+
+发布包名是 `@chasel34/raindrop-cli`，安装后的可执行命令名是 `raindrop`。
+
+如果你希望从源码运行：
 
 ```bash
 pnpm install
 pnpm build
-```
-
-构建后可直接执行：
-
-```bash
 node dist/index.mjs --help
 ```
 
-如果你希望在本机以命令方式调用，也可以在本地链接：
+本地开发时也可以链接当前 checkout：
 
 ```bash
 pnpm link --global

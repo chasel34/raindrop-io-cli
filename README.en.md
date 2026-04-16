@@ -46,20 +46,24 @@ raindrop request get </rest/v1/...>
 
 ## Installation
 
-The project is currently best used directly from source:
+Install the published package globally from npm:
+
+```bash
+npm install -g @chasel34/raindrop-cli
+raindrop --help
+```
+
+The package name is `@chasel34/raindrop-cli`; the installed command is `raindrop`.
+
+To run from source:
 
 ```bash
 pnpm install
 pnpm build
-```
-
-After building, run it directly with:
-
-```bash
 node dist/index.mjs --help
 ```
 
-If you want a machine-local command, you can link it globally:
+For local development, you can also link the current checkout:
 
 ```bash
 pnpm link --global
