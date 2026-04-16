@@ -1,4 +1,4 @@
 interface:
   display_name: "Raindrop CLI Companion"
-  short_description: "Run and troubleshoot the Raindrop CLI"
-  default_prompt: "Use $raindrop-cli-companion to run, explain, or troubleshoot the installed Raindrop CLI."
+  short_description: "Run and troubleshoot Raindrop CLI read/write workflows"
+  default_prompt: "Use $raindrop-cli-companion to run, explain, or troubleshoot installed Raindrop CLI read/write workflows."

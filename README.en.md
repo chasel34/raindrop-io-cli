@@ -19,6 +19,10 @@ This repository is currently designed to be used from source. It is a good fit f
 ```text
 raindrop doctor
 raindrop user me
+raindrop collections create --title <title> [--parent <id>] [--view <view>] [--sort <number>] [--cover <url,...>] [--public]
+raindrop collections update <id> [--title <title>] [--parent <id>] [--no-parent] [--view <view>] [--sort <number>] [--cover <url,...>] [--expanded|--collapsed] [--public|--private]
+raindrop collections delete <id>
+raindrop collections delete-many --ids <ids>
 raindrop collections list [--tree]
 raindrop collections resolve --name <name>
 raindrop tags list [--collection <id>]
@@ -27,6 +31,10 @@ raindrop bookmarks search <query> --collection <id> [--limit <count>] [--page <p
 raindrop bookmarks get <id>
 raindrop bookmarks suggest --url <url>
 raindrop bookmarks create --url <url> --collection <id> [--title <title>] [--tags <a,b>] [--parse]
+raindrop bookmarks update <id> [--url <url>] [--title <title>] [--collection <id>] [--tags <a,b>|--clear-tags] [--important|--not-important] [--excerpt <text>] [--note <text>] [--cover <url>] [--parse]
+raindrop bookmarks delete <id>
+raindrop bookmarks update-many --collection <id> (--ids <ids>|--search <query>) [--nested] [--tags <a,b>|--clear-tags] [--move-to <id>] [--important|--not-important] [--cover <url>]
+raindrop bookmarks delete-many --collection <id> (--ids <ids>|--search <query>) [--nested]
 raindrop request get </rest/v1/...>
 ```
 
@@ -189,6 +197,10 @@ Returns the authenticated user.
 
 ### `collections`
 
+- `collections create` creates a collection
+- `collections update` updates title, parent, view, sort, cover, expanded state, and public state
+- `collections delete` deletes one collection
+- `collections delete-many` deletes multiple collections
 - `collections list` returns collections; add `--tree` for nested output
 - `collections resolve --name <name>` resolves a single collection by title or full path
 
@@ -204,11 +216,16 @@ Returns the authenticated user.
 - `bookmarks get` fetches a single bookmark
 - `bookmarks suggest` suggests collections and tags for a URL
 - `bookmarks create` creates a bookmark and can request server-side parsing with `--parse`
+- `bookmarks update` updates a single bookmark
+- `bookmarks delete` deletes a single bookmark
+- `bookmarks update-many` bulk updates bookmarks by IDs or search query
+- `bookmarks delete-many` bulk deletes bookmarks by IDs or search query
 
 Notes:
 
 - `bookmarks suggest` may require a Raindrop Pro account
-- `bookmarks create` and `bookmarks suggest` only accept absolute `http` or `https` URLs
+- URL arguments only accept absolute `http` or `https` URLs
+- `bookmarks update-many` and `bookmarks delete-many` do not support `--collection 0`
 - `meta.pagination.perPage` reflects the requested `--limit`, even when the CLI spans multiple API pages internally
 
 ### `request get`
@@ -236,10 +253,10 @@ The checklist below compares the current CLI against the Raindrop API surface an
 - [x] List collections
 - [x] Render the collection tree
 - [x] Resolve a collection by name or path
-- [ ] Create a collection
-- [ ] Update a collection
-- [ ] Delete a collection
-- [ ] Delete multiple collections
+- [x] Create a collection
+- [x] Update a collection
+- [x] Delete a collection
+- [x] Delete multiple collections
 - [ ] Merge collections
 - [ ] Upload a collection cover
 - [ ] Search collection covers or icons
@@ -257,10 +274,10 @@ The checklist below compares the current CLI against the Raindrop API surface an
 - [x] Get a single bookmark
 - [x] Create a bookmark
 - [x] Suggest tags and collections for a URL
-- [ ] Update a bookmark
-- [ ] Delete a bookmark
-- [ ] Bulk update bookmarks
-- [ ] Bulk delete bookmarks
+- [x] Update a bookmark
+- [x] Delete a bookmark
+- [x] Bulk update bookmarks
+- [x] Bulk delete bookmarks
 - [ ] Export bookmarks
 - [ ] Read permanent copy metadata or open cached content
 - [ ] Upload files as bookmarks

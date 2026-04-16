@@ -1,6 +1,6 @@
 ---
 name: raindrop-cli-companion
-description: Use this skill when Codex needs to run, explain, troubleshoot, or script the `raindrop` CLI as an installed command-line tool. Apply it for authentication setup, command discovery, JSON-mode automation, collection or bookmark operations, smoke tests, and debugging failures in `doctor`, `user`, `collections`, `tags`, `bookmarks`, or `request get`.
+description: Use this skill when Codex needs to run, explain, troubleshoot, or script the `raindrop` CLI as an installed command-line tool. Apply it for authentication setup, command discovery, JSON-mode automation, collection or bookmark read/write operations, smoke tests, and debugging failures in `doctor`, `user`, `collections`, `tags`, `bookmarks`, or `request get`.
 ---
 
 # Raindrop Cli Companion
@@ -43,9 +43,14 @@ Use `user me` to confirm the authenticated account:
 raindrop --json user me
 ```
 
-Use collection commands to inspect structure or resolve names. `collections resolve` requires `--name`:
+Use collection commands to create, update, delete, inspect structure, or resolve names. `collections create` requires `--title`; `collections update` requires an ID and at least one update field; `collections delete` requires an ID; `collections delete-many` requires `--ids`; `collections resolve` requires `--name`:
 
 ```bash
+raindrop --json collections create --title "Reading" --parent 123 --public
+raindrop --json collections update 456 --title "Long Reads" --parent 123 --view list --sort 1 --cover https://example.com/cover.png --expanded
+raindrop --json collections update 456 --no-parent --private --collapsed
+raindrop --json collections delete 456
+raindrop --json collections delete-many --ids 456,789
 raindrop --json collections list --tree
 raindrop --json collections resolve --name Research
 ```
@@ -59,11 +64,18 @@ raindrop --json bookmarks search 'typescript #performance' --collection 0 --limi
 raindrop --json bookmarks get 123
 ```
 
-Use bookmark suggestion and creation for write flows. `bookmarks suggest` requires `--url` and may require a Raindrop Pro account. `bookmarks create` requires both `--url` and `--collection`:
+Use bookmark suggestion, creation, update, delete, and batch write commands for write flows. `bookmarks suggest` requires `--url` and may require a Raindrop Pro account. `bookmarks create` requires both `--url` and `--collection`. `bookmarks update` requires an ID and at least one update field. `bookmarks update-many` requires `--collection`, either `--ids` or `--search`, and at least one update field. `bookmarks delete-many` requires `--collection` plus either `--ids` or `--search`:
 
 ```bash
 raindrop --json bookmarks suggest --url https://example.com
 raindrop --json bookmarks create --url https://example.com --collection -1 --title "Example" --tags a,b --parse
+raindrop --json bookmarks update 123 --title "Updated" --collection 456 --tags a,b --important
+raindrop --json bookmarks update 123 --clear-tags --not-important
+raindrop --json bookmarks delete 123
+raindrop --json bookmarks update-many --collection 456 --ids 123,124 --tags reviewed --move-to 789
+raindrop --json bookmarks update-many --collection 456 --search '#inbox' --nested --clear-tags
+raindrop --json bookmarks delete-many --collection 456 --ids 123,124
+raindrop --json bookmarks delete-many --collection 456 --search '#stale' --nested
 ```
 
 Use `request get` only as a read-only escape hatch. The path must start with `/`; absolute URLs fail:
@@ -86,7 +98,15 @@ Treat `request get` paths as relative API paths beginning with `/`; do not pass 
 
 Treat `collections resolve --name ...`, `bookmarks list --collection ...`, `bookmarks search --collection ...`, `bookmarks suggest --url ...`, and `bookmarks create --url ... --collection ...` as commands with required flags, not optional examples.
 
-Use `bookmarks create` only with absolute `http` or `https` URLs.
+Use URL flags only with absolute `http` or `https` URLs. This includes bookmark URLs, bookmark cover URLs, and collection cover URLs.
+
+Treat write commands as user-visible state changes. Before running `collections delete`, `collections delete-many`, `bookmarks delete`, or `bookmarks delete-many`, confirm the target IDs or search query unless the user has explicitly asked for that exact destructive operation.
+
+For batch bookmark operations, never use `--collection 0`; Raindrop does not support batch update/delete against collection `0`. Use a real collection ID such as `-1` for Unsorted or a positive collection ID.
+
+Use exactly one selector for bookmark batch operations: either `--ids` or `--search`, not both. Use `--nested` only when search-based or collection-wide behavior should include nested collections.
+
+Use exactly one state toggle when offered: `--public` or `--private`, `--expanded` or `--collapsed`, `--important` or `--not-important`, `--tags` or `--clear-tags`.
 
 ## Troubleshooting Flow
 
@@ -103,5 +123,9 @@ If a command fails with `cli_usage_error`, rerun it with `--help` and check for 
 If a request fails with `network_timeout` or `network_error`, inspect `base_url`, connectivity, and `timeout_ms`.
 
 If `bookmarks suggest` fails with `feature_requires_pro`, the authenticated account does not have access to bookmark suggestions; switch to a Pro account or avoid that command in automation.
+
+If a batch bookmark command fails with `bookmark_collection_unsupported`, retry with a supported source collection instead of `--collection 0`.
+
+If a write command fails with `*_update_empty`, add at least one field to update. If it fails with `*_options_conflict` or `bookmark_selector_conflict`, remove one of the mutually exclusive flags.
 
 If a write or read fails with API-derived errors such as `auth` or `rate_limited`, surface the structured JSON error to the caller instead of paraphrasing it away.

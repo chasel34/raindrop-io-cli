@@ -19,6 +19,10 @@
 ```text
 raindrop doctor
 raindrop user me
+raindrop collections create --title <title> [--parent <id>] [--view <view>] [--sort <number>] [--cover <url,...>] [--public]
+raindrop collections update <id> [--title <title>] [--parent <id>] [--no-parent] [--view <view>] [--sort <number>] [--cover <url,...>] [--expanded|--collapsed] [--public|--private]
+raindrop collections delete <id>
+raindrop collections delete-many --ids <ids>
 raindrop collections list [--tree]
 raindrop collections resolve --name <name>
 raindrop tags list [--collection <id>]
@@ -27,6 +31,10 @@ raindrop bookmarks search <query> --collection <id> [--limit <count>] [--page <p
 raindrop bookmarks get <id>
 raindrop bookmarks suggest --url <url>
 raindrop bookmarks create --url <url> --collection <id> [--title <title>] [--tags <a,b>] [--parse]
+raindrop bookmarks update <id> [--url <url>] [--title <title>] [--collection <id>] [--tags <a,b>|--clear-tags] [--important|--not-important] [--excerpt <text>] [--note <text>] [--cover <url>] [--parse]
+raindrop bookmarks delete <id>
+raindrop bookmarks update-many --collection <id> (--ids <ids>|--search <query>) [--nested] [--tags <a,b>|--clear-tags] [--move-to <id>] [--important|--not-important] [--cover <url>]
+raindrop bookmarks delete-many --collection <id> (--ids <ids>|--search <query>) [--nested]
 raindrop request get </rest/v1/...>
 ```
 
@@ -189,6 +197,10 @@ raindrop --json request get /rest/v1/user
 
 ### `collections`
 
+- `collections create` 创建收藏夹
+- `collections update` 更新收藏夹标题、父级、视图、排序、封面、展开状态和公开状态
+- `collections delete` 删除单个收藏夹
+- `collections delete-many` 批量删除收藏夹
 - `collections list` 列出收藏夹；加 `--tree` 返回嵌套结构
 - `collections resolve --name <name>` 按标题或完整路径解析单个收藏夹
 
@@ -204,11 +216,16 @@ raindrop --json request get /rest/v1/user
 - `bookmarks get` 读取单个书签
 - `bookmarks suggest` 为 URL 建议收藏夹和标签
 - `bookmarks create` 创建书签，并可通过 `--parse` 请求服务端解析页面
+- `bookmarks update` 更新单个书签
+- `bookmarks delete` 删除单个书签
+- `bookmarks update-many` 按 ID 或搜索条件批量更新书签
+- `bookmarks delete-many` 按 ID 或搜索条件批量删除书签
 
 注意：
 
 - `bookmarks suggest` 可能需要 Raindrop Pro 账号
-- `bookmarks create` 和 `bookmarks suggest` 只接受绝对 `http` 或 `https` URL
+- URL 参数只接受绝对 `http` 或 `https` URL
+- `bookmarks update-many` 和 `bookmarks delete-many` 不支持 `--collection 0`
 - `bookmarks list` 和 `bookmarks search` 的 `meta.pagination.perPage` 反映的是你请求的 `--limit`，即使 CLI 内部跨了多个 API 页
 
 ### `request get`
@@ -236,10 +253,10 @@ raindrop --json request get /rest/v1/user
 - [x] 列出收藏夹
 - [x] 以树形结构展示收藏夹
 - [x] 按名称或路径解析收藏夹
-- [ ] 创建收藏夹
-- [ ] 更新收藏夹
-- [ ] 删除单个收藏夹
-- [ ] 批量删除收藏夹
+- [x] 创建收藏夹
+- [x] 更新收藏夹
+- [x] 删除单个收藏夹
+- [x] 批量删除收藏夹
 - [ ] 合并收藏夹
 - [ ] 上传收藏夹封面
 - [ ] 搜索收藏夹封面或图标
@@ -257,10 +274,10 @@ raindrop --json request get /rest/v1/user
 - [x] 读取单个书签
 - [x] 创建书签
 - [x] 为 URL 推荐标签和收藏夹
-- [ ] 更新书签
-- [ ] 删除单个书签
-- [ ] 批量更新书签
-- [ ] 批量删除书签
+- [x] 更新书签
+- [x] 删除单个书签
+- [x] 批量更新书签
+- [x] 批量删除书签
 - [ ] 导出书签
 - [ ] 读取永久副本信息或打开缓存内容
 - [ ] 以上传文件的方式创建书签
